@@ -70,6 +70,7 @@ export default function LoginScreen() {
                         }]}
 
                         onPressOut={()=>{
+                            console.log("LOGIN")
                             login(email, password)
                                 .then(()=>{
                                     router.push("/(home)")

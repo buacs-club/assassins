@@ -1,27 +1,19 @@
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme.web';
+import { readNdef } from '@/lib/ndef';
 import { Image } from 'expo-image';
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect } from 'react';
 
 export default function HomeScreen() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
   const { width } = useWindowDimensions();
-
-  useEffect(()=>{(async()=>{
-    console.log("STARTING NDEF")
-    while (true) {
-      //await readNdef();
-    }
-  })()},[])
-
 
   return (
     <ThemedView style={styles.container}>
@@ -51,6 +43,25 @@ export default function HomeScreen() {
               <ThemedText type="default" style={{ color: colors.textSecondary }}>
                 Your next target is ....
               </ThemedText>
+              <Pressable 
+                  style={({ pressed }) => [{
+                      backgroundColor: pressed ? colors.textSecondary : colors.text,
+                      transform: [{scale: pressed ? 0.95 : 1.0}],
+                      alignItems: "center",
+                      padding: Spacing.two,
+                      borderRadius: Spacing.six,
+                      transitionDuration: "125ms",
+                  }]}
+
+                  onPressOut={async ()=>{
+                    console.log("READING TAG")
+                    await readNdef()
+                  }}
+                >
+                    <ThemedText type="default" style={{ color: colors.background }}>
+                        Attack
+                    </ThemedText>
+              </Pressable>
             </View>
 
         </SafeAreaView>

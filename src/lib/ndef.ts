@@ -1,4 +1,4 @@
-import NfcManager, { Ndef, nfcManager, NfcTech } from "react-native-nfc-manager";
+import NfcManager, { Ndef, NfcTech } from "react-native-nfc-manager";
 
 export let scanning = false;
 
@@ -40,10 +40,10 @@ export async function writeNdef() {
         await NfcManager.requestTechnology(NfcTech.Ndef);
 
         const bytes = Ndef.encodeMessage([
-            Ndef.textRecord("New Text")
+            Ndef.record(1, "text/plain", "", "Hello world")
         ])
 
-        nfcManager.ndefHandler.writeNdefMessage(bytes);
+        NfcManager.ndefHandler.writeNdefMessage(bytes);
     } catch (error) {
         console.log(error)
     } finally {
