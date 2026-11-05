@@ -6,6 +6,7 @@ import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/th
 import { useColorScheme } from '@/hooks/use-color-scheme.web';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/AuthProvider';
+import { writeNdef } from '@/lib/ndef';
 import { logout, supabase } from '@/lib/supabase';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
@@ -118,34 +119,53 @@ export default function TabTwoScreen() {
                   alignItems: "center"
                 }}>
                   <Pressable 
-                  style={({ pressed }) => [{
-                      backgroundColor: pressed ? colors.textSecondary : colors.text,
-                      transform: [{scale: pressed ? 0.95 : 1.0}],
-                      width: "100%",
-                      alignItems: "center",
-                      padding: Spacing.two,
-                      borderRadius: Spacing.six,
-                      transitionDuration: "125ms",
-                  }]}
+                    style={({ pressed }) => [{
+                        backgroundColor: pressed ? colors.textSecondary : colors.text,
+                        transform: [{scale: pressed ? 0.95 : 1.0}],
+                        width: "100%",
+                        alignItems: "center",
+                        padding: Spacing.two,
+                        borderRadius: Spacing.six,
+                        transitionDuration: "125ms",
+                    }]}
 
-                  onPressOut={()=>{
-                    console.log("UPDATING USER")
-                    supabase.auth.updateUser({
-                      data: {
-                        username
-                      }
-                    })
-                    setUserNameModalVisible(false)
-                  }}
-                >
-                    <ThemedText type="default" style={{ color: colors.background }}>
-                        Save
-                    </ThemedText>
-                </Pressable>
+                    onPressOut={()=>{
+                      console.log("UPDATING USER")
+                      supabase.auth.updateUser({
+                        data: {
+                          username
+                        }
+                      })
+                      setUserNameModalVisible(false)
+                    }}
+                  >
+                      <ThemedText type="default" style={{ color: colors.background }}>
+                          Save
+                      </ThemedText>
+                  </Pressable>
               </View>
             </View>
           </View>
         </Modal>
+        <Pressable 
+          style={({ pressed }) => [{
+              backgroundColor: pressed ? colors.textSecondary : colors.text,
+              transform: [{scale: pressed ? 0.95 : 1.0}],
+              alignItems: "center",
+              padding: Spacing.two,
+              borderRadius: Spacing.six,
+              transitionDuration: "125ms",
+          }]}
+
+          onPressOut={async ()=>{
+            console.log("WRITING TAG")
+            await writeNdef()
+          }}
+        >
+            <ThemedText type="default" style={{ color: colors.background }}>
+                Register NFC
+            </ThemedText>
+        </Pressable>
         <Pressable 
           style={({ pressed }) => [{
               //backgroundColor: pressed ? colors.textSecondary : colors.text,
