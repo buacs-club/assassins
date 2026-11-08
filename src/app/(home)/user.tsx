@@ -6,10 +6,10 @@ import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/th
 import { useColorScheme } from '@/hooks/use-color-scheme.web';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/AuthProvider';
-import { writeNdef } from '@/lib/ndef';
+import { TagObject, TagType, UserTagData, writeNdef } from '@/lib/ndef';
 import { logout, supabase } from '@/lib/supabase';
 import { SymbolView } from 'expo-symbols';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function TabTwoScreen() {
   const safeAreaInsets = useSafeAreaInsets();
@@ -25,10 +25,21 @@ export default function TabTwoScreen() {
   const { session } = useAuth()
 
   const [usernameModalVisible, setUserNameModalVisible] = useState(false);
+  const [registerModalVisible, setRegisterModalVisible] = useState(false);
 
-  const [username, setUsername] = useState(session?.user.user_metadata.username)
-  
-  let syncedUsername = session?.user.user_metadata.username;
+  const [username, setUsername] = useState("")
+  let [syncedUsername, setSyncedUsername] = useState("");
+
+  useEffect(()=>{
+    supabase
+    .from("user_data")
+    .select("*")
+    .then((res)=>{
+      const data = res.data![0]
+      setUsername(data.username)
+      setSyncedUsername(data.username)
+    })
+  },[])
 
   return (
     <View style={styles.container}>
@@ -129,13 +140,13 @@ export default function TabTwoScreen() {
                         transitionDuration: "125ms",
                     }]}
 
-                    onPressOut={()=>{
+                    onPressOut={async()=>{
                       console.log("UPDATING USER")
-                      supabase.auth.updateUser({
-                        data: {
-                          username
-                        }
-                      })
+                      setSyncedUsername(username)
+                      await supabase
+                        .from("user_data")
+                        .update({username})
+                        .eq("id", session?.user.id)
                       setUserNameModalVisible(false)
                     }}
                   >
@@ -159,13 +170,51 @@ export default function TabTwoScreen() {
 
           onPressOut={async ()=>{
             console.log("WRITING TAG")
-            await writeNdef()
+            setRegisterModalVisible(true);
+            await writeNdef({
+              type: TagType.UserCard,
+              data: {
+                uid: session?.user.id
+              } as UserTagData
+            } as TagObject)
+            setRegisterModalVisible(false);
           }}
         >
             <ThemedText type="default" style={{ color: colors.background }}>
                 Register NFC
             </ThemedText>
         </Pressable>
+        <Modal
+          animationType='slide'
+          transparent={true}
+          visible={registerModalVisible}
+          onRequestClose={() => {setRegisterModalVisible(false)}}
+        >
+          <View style={styles.overlay}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => setRegisterModalVisible(false)}
+            />
+            <View style={{
+              minHeight: "75%",
+              padding: Spacing.four,
+              paddingBottom: 40,
+              backgroundColor: colors.backgroundElement,
+              borderTopLeftRadius: Spacing.four,
+              borderTopRightRadius: Spacing.four,
+              bottom: "0px",
+              gap: Spacing.two,
+              position: "relative",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              <SymbolView name={{ios: "scanner", android: "nfc"}} size={128} tintColor={colors.accent}/>
+              <ThemedText type="code">
+                Tap the NFC tag on your phone.
+              </ThemedText>
+            </View>
+          </View>
+        </Modal>
         <Pressable 
           style={({ pressed }) => [{
               //backgroundColor: pressed ? colors.textSecondary : colors.text,

@@ -5,15 +5,27 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme.web';
-import { readNdef } from '@/lib/ndef';
+import { readNdef, UserTagData } from '@/lib/ndef';
+import { supabase } from '@/lib/supabase';
 import { Image } from 'expo-image';
 import { LinearGradient } from "expo-linear-gradient";
+import { SymbolView } from 'expo-symbols';
+import { useEffect, useState } from 'react';
 
 export default function HomeScreen() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
   const { width } = useWindowDimensions();
+
+  const [target, setTarget] = useState("")
+
+  useEffect(()=>{
+    supabase.rpc("get_target_username")
+      .then((res)=>{
+        setTarget(res.data)
+      })
+  },[])
 
   return (
     <ThemedView style={styles.container}>
@@ -41,28 +53,34 @@ export default function HomeScreen() {
                 Assassins
               </ThemedText>
               <ThemedText type="default" style={{ color: colors.textSecondary }}>
-                Your next target is ....
+                Your next target is {target}
               </ThemedText>
-              <Pressable 
-                  style={({ pressed }) => [{
-                      backgroundColor: pressed ? colors.textSecondary : colors.text,
-                      transform: [{scale: pressed ? 0.95 : 1.0}],
-                      alignItems: "center",
-                      padding: Spacing.two,
-                      borderRadius: Spacing.six,
-                      transitionDuration: "125ms",
-                  }]}
-
-                  onPressOut={async ()=>{
-                    console.log("READING TAG")
-                    await readNdef()
-                  }}
-                >
-                    <ThemedText type="default" style={{ color: colors.background }}>
-                        Attack
-                    </ThemedText>
-              </Pressable>
             </View>
+
+            <Pressable 
+              style={({ pressed }) => [{
+                  backgroundColor: pressed ? colors.textSecondary : colors.text,
+                  transform: [{scale: pressed ? 0.95 : 1.0}],
+                  alignItems: "center",
+                  padding: Spacing.three,
+                  width: "75%",
+                  borderRadius: Spacing.six,
+                  transitionDuration: "125ms",
+                  position: "absolute",
+                  bottom: Spacing.four,
+                  flex: 1,
+                  flexDirection: "column"
+              }]}
+
+              onPressOut={async ()=>{
+                console.log("READING TAG")
+                const json = await readNdef();
+                console.log(json)
+                console.log(await supabase.rpc("attack_user", {p_id: (json?.data as UserTagData).uid}))
+              }}
+            >
+              <SymbolView name={{ios: "scanner", android: "swords"}} size={24} tintColor={colors.backgroundElement}/>
+          </Pressable>
 
         </SafeAreaView>
       </LinearGradient>
