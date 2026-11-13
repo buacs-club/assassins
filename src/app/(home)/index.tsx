@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -19,6 +19,8 @@ export default function HomeScreen() {
   const { width } = useWindowDimensions();
 
   const [target, setTarget] = useState("")
+
+  const insets = useSafeAreaInsets();
 
   useEffect(()=>{
     supabase.rpc("get_target_username")
@@ -67,7 +69,7 @@ export default function HomeScreen() {
                   borderRadius: Spacing.six,
                   transitionDuration: "125ms",
                   position: "absolute",
-                  bottom: Spacing.four,
+                  bottom: insets.bottom + Spacing.four,
                   flex: 1,
                   flexDirection: "column"
               }]}
