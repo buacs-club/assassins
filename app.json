@@ -39,7 +39,13 @@
         }
       ],
       "expo-sqlite",
-      "react-native-nfc-manager"
+      [
+        "react-native-nfc-manager",
+        {
+          "nfcPermission": "Assassins utilizes NFC to scan and register player's physical tags.",
+          "includeNdefEntitlement": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
