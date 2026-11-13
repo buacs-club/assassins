@@ -81,7 +81,7 @@ export default function HomeScreen() {
                 console.log(await supabase.rpc("attack_user", {p_id: (json?.data as UserTagData).uid}))
               }}
             >
-              <SymbolView name={{ios: "scanner", android: "swords"}} size={24} tintColor={colors.backgroundElement}/>
+              <SymbolView name={{ios: "bolt.fill", android: "swords"}} size={24} tintColor={colors.backgroundElement}/>
           </Pressable>
 
         </SafeAreaView>
