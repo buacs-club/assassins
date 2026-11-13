@@ -52,7 +52,7 @@ export async function readNdef(): Promise<TagObject | undefined> {
 }
 
 export async function writeNdef(data: TagObject) {
-    if (scanning) {await NfcManager.cancelTechnologyRequest()}
+    if (scanning) {await NfcManager.cancelTechnologyRequest(); scanning = false;}
     let requestAttempted = false;
     try {
         requestAttempted = true;
