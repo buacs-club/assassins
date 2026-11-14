@@ -1,12 +1,11 @@
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Platform, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ExternalLink } from '@/components/external-link';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { getLeaderboard, LeaderboardEntry } from '@/lib/supabase';
 
 export default function TabTwoScreen() {
   const safeAreaInsets = useSafeAreaInsets();
@@ -15,6 +14,13 @@ export default function TabTwoScreen() {
     bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
   };
   const theme = useTheme();
+
+  let leaderboard: LeaderboardEntry[] = [];
+
+  getLeaderboard()
+    .then((res)=>{
+      leaderboard = res;
+    })
 
   const contentPlatformStyle = Platform.select({
     android: {
@@ -30,6 +36,28 @@ export default function TabTwoScreen() {
   });
 
   return (
+
+    <ThemedView
+      style={[{ backgroundColor: theme.background}]}>
+      <ThemedView style={styles.container}>
+        <ThemedView style={styles.titleContainer}>
+          <ThemedText type="subtitle">Leaderboard</ThemedText>
+        </ThemedView>
+        <ScrollView style={styles.scrollView}
+        contentInset={insets}
+        contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
+          <ThemedView style={styles.leaderboardContainer}>
+            
+          </ThemedView>
+          <ThemedText style={[styles.leaderboardEntry, {backgroundColor: theme.backgroundElement, justifyContent: 'center'}]}>Sustingus</ThemedText>
+        </ScrollView>
+      </ThemedView>
+
+    </ThemedView>
+
+
+
+    /*
     <ScrollView
       style={[styles.scrollView, { backgroundColor: theme.background }]}
       contentInset={insets}
@@ -59,10 +87,39 @@ export default function TabTwoScreen() {
         </ThemedView>
       </ThemedView>
     </ScrollView>
+    */
   );
 }
 
 const styles = StyleSheet.create({
+
+  scrollView: {
+    flex: 1
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
+  container: {
+    maxWidth: MaxContentWidth,
+    flexGrow: 1
+  },
+  titleContainer: {
+    gap: Spacing.three,
+    alignItems: 'center',
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.six
+  },
+  leaderboardContainer: {
+    alignItems: 'center',
+    paddingHorizontal: Spacing.six
+  },
+  leaderboardEntry: {
+    width: '80%',
+    padding: Spacing.one
+  }
+  
+  /*
   scrollView: {
     flex: 1,
   },
@@ -114,4 +171,5 @@ const styles = StyleSheet.create({
     height: 100,
     alignSelf: 'center',
   },
+  */
 });
