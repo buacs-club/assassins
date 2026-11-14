@@ -1,4 +1,4 @@
-import { Alert, Keyboard, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -8,8 +8,11 @@ import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/AuthProvider';
 import { TagObject, TagType, UserTagData, writeNdef } from '@/lib/ndef';
 import { logout, supabase } from '@/lib/supabase';
+import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { SymbolView } from 'expo-symbols';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Animated, { Extrapolation, interpolate, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 export default function TabTwoScreen() {
   const safeAreaInsets = useSafeAreaInsets();
@@ -27,6 +30,11 @@ export default function TabTwoScreen() {
   const [usernameModalVisible, setUserNameModalVisible] = useState(false);
   const [registerModalVisible, setRegisterModalVisible] = useState(false);
 
+  const usernameSheet = useRef<TrueSheet>(null);
+  const registerSheet = useRef<TrueSheet>(null);
+
+  const hideRegisterSheet = useCallback(()=>{void registerSheet.current?.dismiss();},[])
+
   const [username, setUsername] = useState("")
   let [syncedUsername, setSyncedUsername] = useState("");
 
@@ -41,9 +49,42 @@ export default function TabTwoScreen() {
     })
   },[])
 
+  useEffect(()=>{
+    if (!registerModalVisible) {
+      successAnimationTime.set(0)
+    }
+  }, [registerModalVisible])
+
+  const successAnimationTime = useSharedValue(0);
+
+  const animatedSuccessStyle = useAnimatedStyle(() => ({
+    width: interpolate(
+      successAnimationTime.value, 
+      [0, 0.5],
+      [0, 1000],
+      Extrapolation.CLAMP),
+    height: interpolate(
+      successAnimationTime.value, 
+      [0, 0.5],
+      [0, 1000],
+      Extrapolation.CLAMP),
+  }))
+
+  const animatedSuccessCheckStyle = useAnimatedStyle(()=>({
+    transform: [{ 
+      scale: interpolate(
+        successAnimationTime.value, 
+        [0.5, 1],
+        [0, 1],
+        Extrapolation.CLAMP) 
+    }]
+  }))
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+
+        // Username and edit button
         <View style={{
             alignItems: "center", 
             justifyContent: "space-between", 
@@ -62,7 +103,7 @@ export default function TabTwoScreen() {
             }]}
 
             onPressOut={()=>{
-                setUserNameModalVisible(true)
+                usernameSheet.current?.present();
             }}
           >
               <SymbolView
@@ -72,92 +113,74 @@ export default function TabTwoScreen() {
               />
           </Pressable>
         </View>
-        <Modal 
-          animationType='slide'
-          transparent={true}
-          visible={usernameModalVisible}
-          onRequestClose={() => {setUserNameModalVisible(false)}}
+
+        // Username change modal
+        <TrueSheet 
+          ref={usernameSheet}
+          detents={[0.5, 1]}
+          style={{position: 'relative', width: "100%", height: "100%", padding: Spacing.four, gap: Spacing.two}}
         >
-          <View style={styles.overlay}>
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={() => setUserNameModalVisible(false)}
-            />
+            <ThemedText type="default" style={{ color: colors.text }}>
+              Change your username:
+            </ThemedText>
+            <TextInput 
+              onChangeText={setUsername} 
+              value={username} 
+              style={{ 
+                  backgroundColor: colors.backgroundElement, 
+                  borderRadius: Spacing.six, 
+                  width: "100%", 
+                  padding: Spacing.three,
+                  color: colors.text,
+                  fontSize: 16,
+                  borderColor: colors.textSecondary,
+                  borderWidth: 1
+              }} 
+              placeholder="Username" 
+              textContentType="name"
+              autoCorrect={true}
+            />  
+
             <View style={{
-              minHeight: "75%",
-              padding: Spacing.four,
-              paddingBottom: 40,
-              backgroundColor: colors.backgroundElement,
-              borderTopLeftRadius: Spacing.four,
-              borderTopRightRadius: Spacing.four,
-              bottom: "0px",
-              gap: Spacing.two,
-              position: "relative"
-            }}>
-              <Pressable
-                style={StyleSheet.absoluteFill}
-                onPress={() => Keyboard.dismiss()}
-              />
-              <ThemedText type="default" style={{ color: colors.text }}>
-                Change your username:
-              </ThemedText>
-              <TextInput 
-                onChangeText={setUsername} 
-                value={username} 
-                style={{ 
-                    backgroundColor: colors.backgroundElement, 
-                    borderRadius: Spacing.six, 
-                    width: "100%", 
-                    padding: Spacing.three,
-                    color: colors.text,
-                    fontSize: 16,
-                    borderColor: colors.textSecondary,
-                    borderWidth: 1
-                }} 
-                placeholder="Username" 
-                textContentType="name"
-                autoCorrect={true}
-              />  
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: Spacing.four,
+                paddingLeft: Spacing.four,
+                paddingRight: Spacing.four,
+                flex: 1,
+                alignItems: "center"
+              }}>
+                <Pressable 
+                  style={({ pressed }) => [{
+                      backgroundColor: pressed ? colors.textSecondary : colors.text,
+                      transform: [{scale: pressed ? 0.95 : 1.0}],
+                      width: "100%",
+                      alignItems: "center",
+                      padding: Spacing.two,
+                      borderRadius: Spacing.six,
+                      transitionDuration: "125ms",
+                  }]}
 
-              <View style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  bottom: Spacing.four,
-                  paddingLeft: Spacing.four,
-                  paddingRight: Spacing.four,
-                  flex: 1,
-                  alignItems: "center"
-                }}>
-                  <Pressable 
-                    style={({ pressed }) => [{
-                        backgroundColor: pressed ? colors.textSecondary : colors.text,
-                        transform: [{scale: pressed ? 0.95 : 1.0}],
-                        width: "100%",
-                        alignItems: "center",
-                        padding: Spacing.two,
-                        borderRadius: Spacing.six,
-                        transitionDuration: "125ms",
-                    }]}
-
-                    onPressOut={async()=>{
-                      console.log("UPDATING USER")
-                      setSyncedUsername(username)
-                      await supabase
-                        .from("user_data")
-                        .update({username})
-                        .eq("id", session?.user.id)
-                      setUserNameModalVisible(false)
-                    }}
-                  >
-                      <ThemedText type="default" style={{ color: colors.background }}>
-                          Save
-                      </ThemedText>
-                  </Pressable>
-              </View>
+                  onPressOut={async()=>{
+                    console.log("UPDATING USER")
+                    setSyncedUsername(username)
+                    await supabase
+                      .from("user_data")
+                      .update({username})
+                      .eq("id", session?.user.id)
+                    usernameSheet.current?.dismiss();
+                  }}
+                >
+                  <ThemedText type="default" style={{ color: colors.background }}>
+                      Save
+                  </ThemedText>
+              </Pressable>
             </View>
-          </View>
-        </Modal>
+         
+        </TrueSheet>
+
+        // Register NFC button
         <Pressable 
           style={({ pressed }) => [{
               backgroundColor: pressed ? colors.textSecondary : colors.text,
@@ -170,54 +193,75 @@ export default function TabTwoScreen() {
 
           onPressOut={async ()=>{
             console.log("WRITING TAG")
-            setRegisterModalVisible(true);
+            registerSheet.current?.present();
             await writeNdef({
               type: TagType.UserCard,
               data: {
                 uid: session?.user.id
               } as UserTagData
             } as TagObject)
-            setRegisterModalVisible(false);
+            successAnimationTime.value = await withSequence(
+              withTiming(0.5, { duration: 500 }),
+              withDelay(250, withSpring(1, { }, (finished)=>{
+                finished && scheduleOnRN(hideRegisterSheet);
+              }))
+            )
           }}
         >
             <ThemedText type="default" style={{ color: colors.background }}>
                 Register NFC
             </ThemedText>
         </Pressable>
-        <Modal
-          animationType='slide'
-          transparent={true}
-          visible={registerModalVisible}
-          onRequestClose={() => {setRegisterModalVisible(false)}}
-        >
-          <View style={styles.overlay}>
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={() => setRegisterModalVisible(false)}
-            />
-            <View style={{
-              minHeight: "75%",
-              padding: Spacing.four,
-              paddingBottom: 40,
-              backgroundColor: colors.backgroundElement,
-              borderTopLeftRadius: Spacing.four,
-              borderTopRightRadius: Spacing.four,
-              bottom: "0px",
-              gap: Spacing.two,
-              position: "relative",
-              alignItems: "center",
-              justifyContent: "center"
-            }}>
-              <SymbolView name={{ios: "scanner", android: "nfc"}} size={128} tintColor={colors.accent}/>
-              <ThemedText type="code">
-                Tap the NFC tag on your phone.
-              </ThemedText>
-            </View>
+
+        // NFC Modal
+        <TrueSheet
+          ref={registerSheet}
+          detents={[0.5, 1]}
+          style={{
+            position: 'relative', 
+            width: "100%", 
+            height: "100%", 
+            padding: Spacing.four, 
+            gap: Spacing.two, 
+            justifyContent: 'center', 
+            alignItems: 'center'
+          }}
+          onDidDismiss={()=>{successAnimationTime.set(0)}}>
+          <SymbolView name={{ios: "scanner", android: "nfc"}} size={128} tintColor={colors.textSecondary}/>
+          <ThemedText type="code">
+            Tap the NFC tag on your phone.
+          </ThemedText>
+
+          <View style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <Animated.View style={[animatedSuccessStyle, {
+              borderRadius: "100%",
+              backgroundColor: "#5cefaf",
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }]}>
+              <Animated.View style={[animatedSuccessCheckStyle]}>
+                <SymbolView 
+                  name={{ ios: "checkmark.app.fill", android: "check" }} 
+                  size={128} 
+                  tintColor={colors.text}
+                />
+              </Animated.View>
+            </Animated.View>
           </View>
-        </Modal>
+        </TrueSheet>
         <Pressable 
           style={({ pressed }) => [{
-              //backgroundColor: pressed ? colors.textSecondary : colors.text,
               transform: [{scale: pressed ? 0.95 : 1.0}],
               width: "100%",
               alignItems: "center",
@@ -231,7 +275,7 @@ export default function TabTwoScreen() {
           onPressOut={()=>{
               Alert.alert(
                 "Sign out?",
-                "Idk does it sign you out?",
+                "If you sign out, you will have to sign back in to continue.",
                 [
                   { text: "Cancel", style: "cancel" },
                   {
