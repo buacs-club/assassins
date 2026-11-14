@@ -59,30 +59,49 @@ export default function HomeScreen() {
               </ThemedText>
             </View>
 
-            <Pressable 
-              style={({ pressed }) => [{
-                  backgroundColor: pressed ? colors.textSecondary : colors.text,
-                  transform: [{scale: pressed ? 0.95 : 1.0}],
-                  alignItems: "center",
-                  padding: Spacing.three,
-                  width: "75%",
-                  borderRadius: Spacing.six,
-                  transitionDuration: "125ms",
-                  position: "absolute",
-                  bottom: insets.bottom + Spacing.four,
-                  flex: 1,
-                  flexDirection: "column"
-              }]}
+            <View style={{
+              flex: 1,
+              flexDirection: 'column',
+              position: "absolute",
+              width: "100%",
+              bottom: insets.bottom + Spacing.four,
+              alignItems: 'center',
+              gap: Spacing.two
+            }}>
+              <View style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: "center",
+                gap: Spacing.one
+              }}>
+                <SymbolView name={{ios: "flame.fill", android: "mode_heat"}} tintColor="#ffaf9c" size={16}></SymbolView>
+                <ThemedText type="smallBold" style={{ color: "#ffaf9c" }}>
+                  5 kills
+                </ThemedText>
+              </View>
+              <Pressable 
+                style={({ pressed }) => [{
+                    backgroundColor: pressed ? colors.textSecondary : colors.text,
+                    transform: [{scale: pressed ? 0.95 : 1.0}],
+                    justifyContent: "center",
+                    padding: Spacing.three,
+                    width: "75%",
+                    borderRadius: Spacing.six,
+                    transitionDuration: "125ms",
+                    flex: 1,
+                    flexDirection: "row",
+                }]}
 
-              onPressOut={async ()=>{
-                console.log("READING TAG")
-                const json = await readNdef();
-                console.log(json)
-                console.log(await supabase.rpc("attack_user", {p_id: (json?.data as UserTagData).uid}))
-              }}
-            >
-              <SymbolView name={{ios: "bolt.fill", android: "swords"}} size={24} tintColor={colors.backgroundElement}/>
-          </Pressable>
+                onPressOut={async ()=>{
+                  console.log("READING TAG")
+                  const json = await readNdef();
+                  console.log(json)
+                  console.log(await supabase.rpc("attack_user", {p_id: (json?.data as UserTagData).uid}))
+                }}
+              >
+                <SymbolView name={{ios: "bolt.fill", android: "swords"}} size={24} tintColor={colors.backgroundElement}/>
+            </Pressable>
+            </View>
 
         </SafeAreaView>
       </LinearGradient>
