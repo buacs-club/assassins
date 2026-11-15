@@ -35,24 +35,26 @@ export async function logout() {
 }
 
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
-  return new Promise((resolve)=>{
-    return resolve([
-      { username: "User1", kills: 15, place: 1 },
-      { username: "User2", kills: 13, place: 2 },
-      { username: "User3", kills: 11, place: 3 },
-      { username: "User4", kills: 9, place: 4 },
-      { username: "User5", kills: 4, place: 5 },
-      { username: "User67", kills: 4, place: 5 },
-      { username: "User68", kills: 4, place: 5 },
-      { username: "User69", kills: 4, place: 5 },
-      { username: "User70", kills: 4, place: 5 },
-      { username: "UserUrMom", kills: 4, place: 5 },
-      { username: "UserUrBald", kills: 4, place: 5 },
-      { username: "User67-2", kills: 4, place: 5 },
-      { username: "User692", kills: 4, place: 5 },
-      { username: "I am typing random", kills: 4, place: 5 },
-      { username: "Balde", kills: 4, place: 5 },
-      { username: "Bald", kills: 4, place: 5 }
-    ])
+
+  return new Promise(async (resolve) => {
+    const data = (await supabase
+        .from("user_data")
+        .select("username,kills")
+        .order("kills", { ascending: false }))
+        .data
+
+    const placedLeaderboard = []
+
+    let place = 1
+    let lowestKillCount = Infinity
+    for (const user of data!) {
+      placedLeaderboard.push({ username: user.username, kills: user.kills, place })
+      if (user.kills < lowestKillCount) {
+        place++;
+        lowestKillCount = user.kills;
+      }
+    }
+
+    return resolve(placedLeaderboard)
   })
 }

@@ -35,21 +35,44 @@ export default function TabTwoScreen() {
     },
   });
 
+  const getPlaceNumberStyle = (place: number) => {
+    switch (place) {
+      case 1:
+        return {
+          color: "#ffdf6c"
+        }
+      case 2:
+        return {
+          color: "#8592a3"
+        }
+      case 3:
+        return {
+          color: "#8d4319"
+        }
+      default:
+        return {
+          color: theme.textSecondary
+        }
+    }
+  }
+
   return (
 
     <ThemedView
-      style={[contentPlatformStyle, {backgroundColor: theme.backgroundElement, flex: 1}]}>
-      <ThemedView style={[styles.container, {backgroundColor: theme.backgroundElement}]}>
-        <ThemedView style={[styles.titleContainer, {backgroundColor: theme.backgroundElement}]}>
+      style={[contentPlatformStyle, {backgroundColor: theme.background, flex: 1}]}>
+      <ThemedView style={[styles.container, {backgroundColor: theme.background}]}>
+        <ThemedView style={[styles.titleContainer, {backgroundColor: theme.background}]}>
           <ThemedText type="subtitle">Leaderboard</ThemedText>
         </ThemedView>
         <ThemedView style={styles.scrollContainer}>
-          <ScrollView style={[styles.scrollView, {backgroundColor: theme.backgroundSelected}]} contentContainerStyle={styles.contentContainer}>
+          <ScrollView style={[styles.scrollView, {backgroundColor: theme.background}]} contentContainerStyle={styles.contentContainer}>
             {leaderboard.map((entry)=>(
-              <ThemedView style={[styles.leaderboardEntry, {backgroundColor: theme.backgroundSelected, flexDirection: 'row', flexWrap: 'wrap'}]} key={entry.username}>
-                <ThemedText style={[styles.leaderboardPlace, {color: theme.textSecondary}]} type="default">{entry.place}</ThemedText>
+              <ThemedView style={[styles.leaderboardEntry, {flexDirection: 'row', flexWrap: 'wrap'}]} key={entry.username}>
+                <ThemedText style={[styles.leaderboardPlace, getPlaceNumberStyle(entry.place)]} type="default">{entry.place}</ThemedText>
                 <ThemedText style={[styles.leaderboardName, {color: theme.textSecondary}]} type="default">{entry.username}</ThemedText>
-                <ThemedText style={[styles.leaderboardKills, {color: theme.textSecondary}]} type="default">{entry.kills}</ThemedText>
+                <ThemedText style={[styles.leaderboardKills, {color: theme.textSecondary, textAlign: "end"}]} type="default">{entry.kills}</ThemedText>
+    
+                <ThemedView style={{backgroundColor: theme.backgroundElement, height: 1, width: "100%"}} />
               </ThemedView>
             ))}
           </ScrollView>
