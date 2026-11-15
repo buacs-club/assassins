@@ -83,8 +83,6 @@ export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-
-        // Username and edit button
         <View style={{
             alignItems: "center", 
             justifyContent: "space-between", 
@@ -114,7 +112,6 @@ export default function TabTwoScreen() {
           </Pressable>
         </View>
 
-        // Username change modal
         <TrueSheet 
           ref={usernameSheet}
           detents={[0.5, 1]}
@@ -179,8 +176,6 @@ export default function TabTwoScreen() {
             </View>
          
         </TrueSheet>
-
-        // Register NFC button
         <Pressable 
           style={({ pressed }) => [{
               backgroundColor: pressed ? colors.textSecondary : colors.text,
@@ -212,8 +207,6 @@ export default function TabTwoScreen() {
                 Register NFC
             </ThemedText>
         </Pressable>
-
-        // NFC Modal
         <TrueSheet
           ref={registerSheet}
           detents={[0.5, 1]}
