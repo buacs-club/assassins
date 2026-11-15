@@ -9,7 +9,8 @@ const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
 export interface LeaderboardEntry {
   username: string,
-  kills: number
+  kills: number,
+  place: number
 }
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
@@ -34,13 +35,14 @@ export async function logout() {
 }
 
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
-  return new Promise(()=>{
-    return [
-      { username: "User1", kills: 15 },
-      { username: "User2", kills: 13 },
-      { username: "User3", kills: 11 },
-      { username: "User4", kills: 9 },
-      { username: "User5", kills: 4 }
-    ]
+  return new Promise((resolve)=>{
+    return resolve([
+      { username: "User1", kills: 15, place: 1 },
+      { username: "User2", kills: 13, place: 2 },
+      { username: "User3", kills: 11, place: 3 },
+      { username: "User4", kills: 9, place: 4 },
+      { username: "User5", kills: 4, place: 5 },
+      { username: "User67", kills: 4, place: 5 }
+    ])
   })
 }
