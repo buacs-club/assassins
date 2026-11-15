@@ -68,7 +68,7 @@ export default function HomeScreen() {
 
   const auth = useAuth()
 
-  let userData: {kills:number, alive:boolean} = {kills:0,alive:true}
+  const [userData, setUserData] = useState({kills:0,alive:true})
   useEffect(()=>{
     if (!auth.loading) {
       supabase
@@ -76,8 +76,7 @@ export default function HomeScreen() {
         .select('alive,kills')
         .eq('id', auth.session?.user.id)
         .then((res) => {
-          userData.kills = res.data![0].kills
-          userData.alive = res.data![0].alive
+          setUserData(res.data![0])
           console.log(userData)
         })
     }
@@ -101,6 +100,19 @@ export default function HomeScreen() {
         return ({ icon: true, color: "#94b1ff" })
     }
   }
+
+  const [killCounterStyles, setKillCounterStyles] = useState({})
+
+  setInterval(()=>{
+    setKillCounterStyles({
+      transform: [{
+        translate: [
+          (userData.kills > 3) ? (Math.random()*2-1)*Math.min(1, userData.kills / 10) : 0, 
+          (userData.kills > 3) ? (Math.random()*2-1)*Math.min(1, userData.kills / 10) : 0
+        ]
+      }]
+    })
+  }, 500)
 
   return (
     <ThemedView style={styles.container}>
@@ -128,7 +140,7 @@ export default function HomeScreen() {
               Assassins
             </ThemedText>
             <ThemedText type="default" style={{ color: colors.textSecondary }}>
-              Your next target is {target}
+              {userData.alive ? `Your next target is ${target}` : `You are eliminated`}
             </ThemedText>
             </View>
 
@@ -141,21 +153,29 @@ export default function HomeScreen() {
               alignItems: 'center',
               gap: Spacing.two
             }}>
-              <View style={{
+              <View style={[killCounterStyles, {
                 flex: 1,
                 flexDirection: 'row',
                 alignItems: "center",
-                gap: Spacing.one
-              }}>
-                <SymbolView name={{ios: "flame.fill", android: "mode_heat"}} tintColor={getKillStyle(userData.kills).color} size={16}></SymbolView>
-                <ThemedText type="smallBold" style={{ color: getKillStyle(userData.kills).color }}>
+                gap: Spacing.one,
+                
+              }]}>
+                <SymbolView 
+                  name={{ios: "flame.fill", android: "mode_heat"}} 
+                  tintColor={getKillStyle(userData.kills).color} 
+                  size={16}
+                  style={{
+                    display: getKillStyle(userData.kills).icon ? "contents" : "none"
+                  }}
+                />
+                <ThemedText type="smallBold" style={[, { color: getKillStyle(userData.kills).color }]}>
                   {userData.kills} kills
                 </ThemedText>
               </View>
               <Pressable 
                 style={({ pressed }) => [{
-                    backgroundColor: pressed ? colors.textSecondary : colors.text,
-                    transform: [{scale: pressed ? 0.95 : 1.0}],
+                    backgroundColor: pressed ? colors.textSecondary : (userData.alive ? colors.text : colors.backgroundElement),
+                    transform: [{scale: pressed ? 0.95 : (userData.alive ? 1.0 : 0.95)}],
                     justifyContent: "center",
                     padding: Spacing.three,
                     width: "75%",
@@ -164,6 +184,8 @@ export default function HomeScreen() {
                     flex: 1,
                     flexDirection: "row",
                 }]}
+
+                disabled = {!userData.alive}
 
                 onPressOut={async ()=>{
                   console.log("READING TAG")
@@ -177,7 +199,7 @@ export default function HomeScreen() {
                   )
                 }}
               >
-                <SymbolView name={{ios: "bolt.fill", android: "swords"}} size={24} tintColor={colors.backgroundElement}/>
+                <SymbolView name={{ios: "bolt.fill", android: "swords"}} size={24} tintColor={(userData.alive ? colors.backgroundElement : colors.background)}/>
             </Pressable>
           </View>
 
