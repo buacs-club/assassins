@@ -42,7 +42,17 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       { username: "User3", kills: 11, place: 3 },
       { username: "User4", kills: 9, place: 4 },
       { username: "User5", kills: 4, place: 5 },
-      { username: "User67", kills: 4, place: 5 }
+      { username: "User67", kills: 4, place: 5 },
+      { username: "User68", kills: 4, place: 5 },
+      { username: "User69", kills: 4, place: 5 },
+      { username: "User70", kills: 4, place: 5 },
+      { username: "UserUrMom", kills: 4, place: 5 },
+      { username: "UserUrBald", kills: 4, place: 5 },
+      { username: "User67-2", kills: 4, place: 5 },
+      { username: "User692", kills: 4, place: 5 },
+      { username: "I am typing random", kills: 4, place: 5 },
+      { username: "Balde", kills: 4, place: 5 },
+      { username: "Bald", kills: 4, place: 5 }
     ])
   })
 }
