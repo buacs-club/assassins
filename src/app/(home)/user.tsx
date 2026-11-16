@@ -11,7 +11,7 @@ import { logout, supabase } from '@/lib/supabase';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useState } from 'react';
 
-export default function TabTwoScreen() {
+export default function UserScreen() {
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {
     ...safeAreaInsets,

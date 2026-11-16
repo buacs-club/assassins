@@ -8,8 +8,10 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/AuthProvider';
 import { LeaderboardEntry, getLeaderboard } from '@/lib/supabase';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function TabTwoScreen() {
+export default function LeaderboardScreen() {
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {
     ...safeAreaInsets,
@@ -67,7 +69,7 @@ export default function TabTwoScreen() {
 
     <ThemedView
       style={[contentPlatformStyle, {backgroundColor: theme.background, flex: 1}]}>
-      <ThemedView style={[styles.container, {backgroundColor: theme.background}]}>
+      <ThemedView style={[styles.container, {backgroundColor: theme.background, alignItems: "center", }]}>
         <ThemedView style={[styles.titleContainer, {backgroundColor: theme.background}]}>
           <ThemedText type="subtitle">Leaderboard</ThemedText>
         </ThemedView>
@@ -88,13 +90,43 @@ export default function TabTwoScreen() {
             ))}
           </ScrollView>
         </ThemedView>
-        <ThemedView style={[styles.leaderboardEntry, {backgroundColor: theme.backgroundSelected, flexDirection: 'row', flexWrap: 'wrap'}]}>
-          <ThemedView style={{backgroundColor: theme.backgroundElement, height: 1, width: "100%"}} />
-          <ThemedText style={[styles.leaderboardPlace]} type="default">{leaderboard.find(i => i.id === session!.user.id)?.place}</ThemedText>
-          <ThemedText style={[styles.leaderboardName, {color: theme.textSecondary}]} type="default">You</ThemedText>
-          <ThemedText style={[styles.leaderboardKills, {color: theme.textSecondary}]} type="default">{leaderboard.find(i => i.id === session!.user.id)?.kills}</ThemedText>
-          <ThemedView style={{backgroundColor: theme.backgroundElement, height: 1, width: "100%"}} />
-        </ThemedView>
+        <LinearGradient 
+          colors={[theme.backgroundElement, theme.accent]}
+          style={[styles.leaderboardEntry, {
+            width: "85%", 
+            backgroundColor: theme.backgroundSelected, 
+            flexDirection: 'row', 
+            flexWrap: 'wrap', 
+            justifyContent: 'space-between', 
+            padding: Spacing.four,
+            borderRadius: Spacing.four,
+            marginTop: Spacing.six,
+            alignItems: "center",
+          }]}>
+            <Image
+              source={require("@/assets/images/noise.jpg")}
+              contentFit="cover"
+              pointerEvents="none"
+              style={styles.texture}
+            />
+            <Image
+              source={require("@/assets/images/noise.png")}
+              contentFit="cover"
+              pointerEvents="none"
+              style={styles.texture}
+            />
+            <ThemedView style={{flexDirection: "column", backgroundColor: "transparent", alignItems: "center"}}>
+              <ThemedText style={{color: theme.text}} type="default">#{leaderboard.find(i => i.id === session!.user.id)?.place}</ThemedText>
+              <ThemedText style={{color: theme.textSecondary}} type="small">Place</ThemedText>
+            </ThemedView>
+
+            <ThemedText style={{color: theme.text, fontSize: 20}} type="default">You</ThemedText>
+            
+            <ThemedView style={{flexDirection: "column", backgroundColor: "transparent", alignItems: "center"}}>
+              <ThemedText style={{color: theme.text}} type="default">{leaderboard.find(i => i.id === session!.user.id)?.kills}</ThemedText>
+              <ThemedText style={{color: theme.textSecondary}} type="small">Elims</ThemedText>
+            </ThemedView>
+        </LinearGradient>
       </ThemedView>
 
     </ThemedView>
@@ -164,5 +196,11 @@ const styles = StyleSheet.create({
     width: '15%',
     padding: Spacing.two,
     textAlign: "end"
+  },
+  texture: {
+    ...StyleSheet.absoluteFill,
+    opacity: 0.3,
+    mixBlendMode: 'multiply',
+    borderRadius: Spacing.four
   }
 });
