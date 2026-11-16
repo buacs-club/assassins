@@ -178,7 +178,7 @@ export default function UserScreen() {
             </View>
         </TrueSheet>
 
-        <ThemedView style={{gap: Spacing.three}}>
+        <ThemedView style={{gap: Spacing.three, width: "100%"}}>
           <Pressable 
             style={({ pressed }) => [{
                 backgroundColor: pressed ? colors.textSecondary : colors.text,
@@ -360,8 +360,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.four,
+    alignItems: 'center',
     gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    maxWidth: MaxContentWidth
   },
 });

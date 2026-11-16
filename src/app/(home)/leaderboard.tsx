@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Platform, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -67,8 +67,8 @@ export default function LeaderboardScreen() {
 
   return (
 
-    <ThemedView
-      style={[contentPlatformStyle, {backgroundColor: theme.background, flex: 1}]}>
+    <SafeAreaView
+      style={[styles.safeArea, {backgroundColor: theme.background, flex: 1}]}>
       <ThemedView style={[styles.container, {backgroundColor: theme.background, alignItems: "center", }]}>
         <ThemedView style={[styles.titleContainer, {backgroundColor: theme.background}]}>
           <ThemedText type="subtitle" style={{fontFamily: Fonts.serif}}>Leaderboard</ThemedText>
@@ -119,12 +119,18 @@ export default function LeaderboardScreen() {
         </LinearGradient>
       </ThemedView>
 
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-
+  safeArea: {
+    flex: 1,
+    paddingHorizontal: Spacing.four,
+    alignItems: 'center',
+    gap: Spacing.three,
+    maxWidth: MaxContentWidth
+  },
   scrollView: {
     flex: 1,
     width: '100%',
