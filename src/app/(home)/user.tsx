@@ -41,13 +41,14 @@ export default function TabTwoScreen() {
 
   useEffect(()=>{
     supabase
-    .from("user_data")
-    .select("*")
-    .then((res)=>{
-      const data = res.data![0]
-      setUsername(data.username)
-      setSyncedUsername(data.username)
-    })
+      .from("user_data")
+      .select("*")
+      .eq("id", session?.user.id)
+      .then((res)=>{
+        const data = res.data![0]
+        setUsername(data.username)
+        setSyncedUsername(data.username)
+      })
   },[])
 
   useEffect(()=>{
