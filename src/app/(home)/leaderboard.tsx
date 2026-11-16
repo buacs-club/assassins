@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/AuthProvider';
 import { LeaderboardEntry, getLeaderboard } from '@/lib/supabase';
@@ -71,7 +71,7 @@ export default function LeaderboardScreen() {
       style={[contentPlatformStyle, {backgroundColor: theme.background, flex: 1}]}>
       <ThemedView style={[styles.container, {backgroundColor: theme.background, alignItems: "center", }]}>
         <ThemedView style={[styles.titleContainer, {backgroundColor: theme.background}]}>
-          <ThemedText type="subtitle">Leaderboard</ThemedText>
+          <ThemedText type="subtitle" style={{fontFamily: Fonts.serif}}>Leaderboard</ThemedText>
         </ThemedView>
         <ThemedView style={[styles.labelContainer, {flexDirection: 'row', flexWrap: 'wrap'}]}>
           <ThemedText style={[styles.labelPlace, {color: theme.text}]}>#</ThemedText>
