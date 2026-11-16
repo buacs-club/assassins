@@ -3,10 +3,10 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Colors, Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme.web';
 import { useAuth } from '@/lib/AuthProvider';
-import { readNdef, TagObject, UserTagData } from '@/lib/ndef';
+import { cancelNdef, readNdef, TagObject, UserTagData } from '@/lib/ndef';
 import { supabase } from '@/lib/supabase';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { Image } from 'expo-image';
@@ -135,11 +135,11 @@ export default function HomeScreen() {
           style={styles.texture}
         />
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.heroSection}>
-            <ThemedText type="title" style={styles.title}>
+          <View style={[styles.heroSection, {gap: 12}]}>
+            <ThemedText type="title" style={[styles.title, {fontFamily: Fonts.serif}]}>
               Assassins
             </ThemedText>
-            <ThemedText type="default" style={{ color: colors.textSecondary }}>
+            <ThemedText type="default" style={{ color: colors.textSecondary, fontFamily: Fonts.serif }}>
               {userData.alive ? `Your next target is ${target}` : `You are eliminated`}
             </ThemedText>
             </View>
@@ -191,6 +191,7 @@ export default function HomeScreen() {
                   console.log("READING TAG")
                   killSheet.current?.present();
                   const json = await readNdef();
+                  if (!json) return;
                   successAnimationTime.value = await withSequence(
                     withTiming(0.5, { duration: 500 }),
                     withDelay(250, withSpring(1, { }, (finished)=>{
@@ -218,7 +219,7 @@ export default function HomeScreen() {
           justifyContent: 'center', 
           alignItems: 'center'
         }}
-        onDidDismiss={()=>{successAnimationTime.set(0)}}>
+        onDidDismiss={()=>{successAnimationTime.set(0); cancelNdef()}}>
         
         <SymbolView name={{ios: "scanner", android: "nfc"}} size={128} tintColor={colors.textSecondary}/>
         <ThemedText type="code">

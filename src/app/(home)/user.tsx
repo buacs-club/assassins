@@ -2,11 +2,12 @@ import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { ThemedView } from '@/components/themed-view';
+import { BottomTabInset, Colors, Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme.web';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/AuthProvider';
-import { TagObject, TagType, UserTagData, writeNdef } from '@/lib/ndef';
+import { cancelNdef, TagObject, TagType, UserTagData, writeNdef } from '@/lib/ndef';
 import { logout, supabase } from '@/lib/supabase';
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { SymbolView } from 'expo-symbols';
@@ -88,7 +89,7 @@ export default function TabTwoScreen() {
             justifyContent: "space-between", 
             flexDirection: 'row'
         }}>
-          <ThemedText type="subtitle" style={{ color: colors.text }}>
+          <ThemedText type="subtitle" style={{ color: colors.text, fontFamily: Fonts.serif }}>
             Hello, {syncedUsername?.split(" ")[0]} {syncedUsername?.split(" ")[1]?.split("")[0]}{syncedUsername?.split(" ").length > 1 ? "." : ""}
           </ThemedText>
           <Pressable 
@@ -107,7 +108,7 @@ export default function TabTwoScreen() {
               <SymbolView
                 name={{ ios: "pencil", android: 'edit' }}
                 size={24}
-                tintColor="white"
+                tintColor={theme.text}
               />
           </Pressable>
         </View>
@@ -174,39 +175,75 @@ export default function TabTwoScreen() {
                   </ThemedText>
               </Pressable>
             </View>
-         
         </TrueSheet>
-        <Pressable 
+
+        <ThemedView style={{gap: Spacing.three}}>
+          <Pressable 
+            style={({ pressed }) => [{
+                backgroundColor: pressed ? colors.textSecondary : colors.text,
+                transform: [{scale: pressed ? 0.95 : 1.0}],
+                alignItems: "center",
+                padding: Spacing.two,
+                borderRadius: Spacing.six,
+                transitionDuration: "125ms",
+            }]}
+
+            onPressOut={async ()=>{
+              console.log("WRITING TAG")
+              registerSheet.current?.present();
+              const res = await writeNdef({
+                type: TagType.UserCard,
+                data: {
+                  uid: session?.user.id
+                } as UserTagData
+              } as TagObject)
+              if (!res) return;
+              successAnimationTime.value = await withSequence(
+                withTiming(0.5, { duration: 500 }),
+                withDelay(250, withSpring(1, { }, (finished)=>{
+                  finished && scheduleOnRN(hideRegisterSheet);
+                }))
+              )
+            }}
+          >
+              <ThemedText type="default" style={{ color: colors.background }}>
+                  Register NFC
+              </ThemedText>
+          </Pressable>
+          <Pressable 
           style={({ pressed }) => [{
-              backgroundColor: pressed ? colors.textSecondary : colors.text,
               transform: [{scale: pressed ? 0.95 : 1.0}],
+              width: "100%",
               alignItems: "center",
               padding: Spacing.two,
               borderRadius: Spacing.six,
               transitionDuration: "125ms",
+              borderColor: colors.accent,
+              borderWidth: 1
           }]}
 
-          onPressOut={async ()=>{
-            console.log("WRITING TAG")
-            registerSheet.current?.present();
-            await writeNdef({
-              type: TagType.UserCard,
-              data: {
-                uid: session?.user.id
-              } as UserTagData
-            } as TagObject)
-            successAnimationTime.value = await withSequence(
-              withTiming(0.5, { duration: 500 }),
-              withDelay(250, withSpring(1, { }, (finished)=>{
-                finished && scheduleOnRN(hideRegisterSheet);
-              }))
-            )
+          onPressOut={()=>{
+              Alert.alert(
+                "Sign out?",
+                "If you sign out, you will have to sign back in to continue.",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Sign out",
+                    style: "destructive",
+                    onPress: () => {
+                      logout()
+                    }
+                  }
+                ]
+              )
           }}
         >
-            <ThemedText type="default" style={{ color: colors.background }}>
-                Register NFC
+            <ThemedText type="default" style={{ color: colors.accent }}>
+                Sign out
             </ThemedText>
         </Pressable>
+        </ThemedView>
         <TrueSheet
           ref={registerSheet}
           detents={[0.5, 1]}
@@ -219,7 +256,7 @@ export default function TabTwoScreen() {
             justifyContent: 'center', 
             alignItems: 'center'
           }}
-          onDidDismiss={()=>{successAnimationTime.set(0)}}>
+          onDidDismiss={()=>{successAnimationTime.set(0); cancelNdef()}}>
           <SymbolView name={{ios: "scanner", android: "nfc"}} size={128} tintColor={colors.textSecondary}/>
           <ThemedText type="code">
             Tap the NFC tag on your phone.
@@ -253,39 +290,6 @@ export default function TabTwoScreen() {
             </Animated.View>
           </View>
         </TrueSheet>
-        <Pressable 
-          style={({ pressed }) => [{
-              transform: [{scale: pressed ? 0.95 : 1.0}],
-              width: "100%",
-              alignItems: "center",
-              padding: Spacing.two,
-              borderRadius: Spacing.six,
-              transitionDuration: "125ms",
-              borderColor: colors.accent,
-              borderWidth: 1
-          }]}
-
-          onPressOut={()=>{
-              Alert.alert(
-                "Sign out?",
-                "If you sign out, you will have to sign back in to continue.",
-                [
-                  { text: "Cancel", style: "cancel" },
-                  {
-                    text: "Sign out",
-                    style: "destructive",
-                    onPress: () => {
-                      logout()
-                    }
-                  }
-                ]
-              )
-          }}
-        >
-            <ThemedText type="default" style={{ color: colors.accent }}>
-                Sign out
-            </ThemedText>
-        </Pressable>
       </SafeAreaView>
     </View>
   );
@@ -354,6 +358,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.four,
     gap: Spacing.three,
     paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,

@@ -24,6 +24,7 @@ export async function readNdef(): Promise<TagObject | undefined> {
     if (scanning || writing) return;
     scanning = true;
     let requestAttmepted = false;
+    let requestCompleted = false;
     let json = {}
     try {
         console.log("STARTING NDEF")
@@ -31,6 +32,7 @@ export async function readNdef(): Promise<TagObject | undefined> {
         await NfcManager.requestTechnology(NfcTech.Ndef)
             .then(async()=>{
                 console.log("NDEF Tag Found!")
+                requestCompleted = true;
                 const tag = await NfcManager.getTag();
                 const raw = Ndef.util.bytesToString(tag?.ndefMessage![0]!.payload!);
                 json = JSON.parse(raw);
@@ -46,23 +48,30 @@ export async function readNdef(): Promise<TagObject | undefined> {
             console.log("nfc cleanup failed!")
         } finally {
             scanning = false;
-            return json as TagObject
+            if (requestCompleted) {
+                return json as TagObject
+            } else {
+                return undefined
+            }
         }
     }
 }
 
-export async function writeNdef(data: TagObject) {
+export async function writeNdef(data: TagObject): Promise<boolean> {
     if (scanning) {await NfcManager.cancelTechnologyRequest(); scanning = false;}
     let requestAttempted = false;
+    let requestCompleted = false;
     try {
         requestAttempted = true;
-        await NfcManager.requestTechnology(NfcTech.Ndef);
+        await NfcManager.requestTechnology(NfcTech.Ndef)
+            .then(()=>{
+                requestCompleted = true;
+                const bytes = Ndef.encodeMessage([
+                    Ndef.record(1, "text/plain", "", JSON.stringify(data))
+                ])
 
-        const bytes = Ndef.encodeMessage([
-            Ndef.record(1, "text/plain", "", JSON.stringify(data))
-        ])
-
-        NfcManager.ndefHandler.writeNdefMessage(bytes);
+                NfcManager.ndefHandler.writeNdefMessage(bytes);
+            })
     } catch (error) {
         console.log(error)
     } finally {
@@ -71,5 +80,12 @@ export async function writeNdef(data: TagObject) {
         }
 
         writing = false;
+        return requestCompleted
     }
+}
+
+export async function cancelNdef() {
+    await NfcManager.cancelTechnologyRequest();
+    scanning = false;
+    writing = false;
 }
