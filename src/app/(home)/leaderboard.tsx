@@ -92,17 +92,7 @@ export default function LeaderboardScreen() {
         </ThemedView>
         <LinearGradient 
           colors={[theme.backgroundElement, theme.accent]}
-          style={[styles.leaderboardEntry, {
-            width: "85%", 
-            backgroundColor: theme.backgroundSelected, 
-            flexDirection: 'row', 
-            flexWrap: 'wrap', 
-            justifyContent: 'space-between', 
-            padding: Spacing.four,
-            borderRadius: Spacing.four,
-            marginTop: Spacing.six,
-            alignItems: "center",
-          }]}>
+          style={[styles.statContainer, {backgroundColor: theme.backgroundSelected, bottom: insets.bottom}]}>
             <Image
               source={require("@/assets/images/noise.jpg")}
               contentFit="cover"
@@ -116,14 +106,14 @@ export default function LeaderboardScreen() {
               style={styles.texture}
             />
             <ThemedView style={{flexDirection: "column", backgroundColor: "transparent", alignItems: "center"}}>
-              <ThemedText style={{color: theme.text}} type="default">#{leaderboard.find(i => i.id === session!.user.id)?.place}</ThemedText>
+              <ThemedText style={{color: theme.text}} type="default">#{leaderboard.find(i => i.id === session?.user.id)?.place}</ThemedText>
               <ThemedText style={{color: theme.textSecondary}} type="small">Place</ThemedText>
             </ThemedView>
 
             <ThemedText style={{color: theme.text, fontSize: 20}} type="default">You</ThemedText>
             
             <ThemedView style={{flexDirection: "column", backgroundColor: "transparent", alignItems: "center"}}>
-              <ThemedText style={{color: theme.text}} type="default">{leaderboard.find(i => i.id === session!.user.id)?.kills}</ThemedText>
+              <ThemedText style={{color: theme.text}} type="default">{leaderboard.find(i => i.id === session?.user.id)?.kills}</ThemedText>
               <ThemedText style={{color: theme.textSecondary}} type="small">Elims</ThemedText>
             </ThemedView>
         </LinearGradient>
@@ -196,6 +186,16 @@ const styles = StyleSheet.create({
     width: '15%',
     padding: Spacing.two,
     textAlign: "end"
+  },
+  statContainer: {
+    position: 'absolute',
+    width: "85%", 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    justifyContent: 'space-between', 
+    padding: Spacing.three,
+    borderRadius: Spacing.four,
+    alignItems: "center"
   },
   texture: {
     ...StyleSheet.absoluteFill,
