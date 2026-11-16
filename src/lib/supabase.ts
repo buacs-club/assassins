@@ -7,6 +7,13 @@ import 'expo-sqlite/localStorage/install'
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
+export interface LeaderboardEntry {
+  username: string,
+  kills: number,
+  place: number,
+  id: string
+}
+
 export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   auth: {
     storage: localStorage,
@@ -26,4 +33,29 @@ export async function logout() {
     await supabase
         .auth
         .signOut()
+}
+
+export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
+
+  return new Promise(async (resolve) => {
+    const data = (await supabase
+        .from("user_data")
+        .select("username,kills,id")
+        .order("kills", { ascending: false }))
+        .data
+
+    const placedLeaderboard = []
+
+    let place = 1
+    let lowestKillCount = Infinity
+    for (const user of data!) {
+      placedLeaderboard.push({ username: user.username, kills: user.kills, place, id: user.id })
+      if (user.kills < lowestKillCount) {
+        place++;
+        lowestKillCount = user.kills;
+      }
+    }
+
+    return resolve(placedLeaderboard)
+  })
 }

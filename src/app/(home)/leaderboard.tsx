@@ -1,20 +1,31 @@
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ExternalLink } from '@/components/external-link';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useAuth } from '@/lib/AuthProvider';
+import { LeaderboardEntry, getLeaderboard } from '@/lib/supabase';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function TabTwoScreen() {
+export default function LeaderboardScreen() {
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {
     ...safeAreaInsets,
     bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
   };
   const theme = useTheme();
+
+  const session = useAuth().session;
+
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+
+  useEffect(()=>{
+    getLeaderboard().then((board) => { setLeaderboard(board) });
+  }, []);
 
   const contentPlatformStyle = Platform.select({
     android: {
@@ -29,89 +40,167 @@ export default function TabTwoScreen() {
     },
   });
 
+  const getPlaceNumberStyle = (place: number) => {
+    switch (place) {
+      case 1:
+        return {
+          color: "#ffdf6c"
+        }
+      case 2:
+        return {
+          color: "#8592a3"
+        }
+      case 3:
+        return {
+          color: "#8d4319"
+        }
+      default:
+        return {
+          color: theme.textSecondary
+        }
+    }
+  }
+
+  const getPlaceHighlightStyle = (id: string) => {
+    return id == session!.user.id ? {backgroundColor: theme.backgroundElement} : {backgroundColor: theme.background};
+  }
+
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
+    <ThemedView
+      style={[contentPlatformStyle, {backgroundColor: theme.background, flex: 1}]}>
+      <ThemedView style={[styles.container, {backgroundColor: theme.background, alignItems: "center", }]}>
+        <ThemedView style={[styles.titleContainer, {backgroundColor: theme.background}]}>
+          <ThemedText type="subtitle" style={{fontFamily: Fonts.serif}}>Leaderboard</ThemedText>
+        </ThemedView>
+        <ThemedView style={[styles.labelContainer, {flexDirection: 'row', flexWrap: 'wrap'}]}>
+          <ThemedText style={[styles.labelPlace, {color: theme.text}]}>#</ThemedText>
+          <ThemedText style={[styles.labelName, {color: theme.text}]}>Player</ThemedText>
+          <ThemedText style={[styles.labelKills, {color: theme.text}]}>Elims</ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.scrollContainer}>
+          <ScrollView style={[styles.scrollView, {backgroundColor: theme.background}]} contentContainerStyle={styles.contentContainer}>
+            {leaderboard.map((entry)=>(
+              <ThemedView style={[styles.leaderboardEntry, {flexDirection: 'row', flexWrap: 'wrap'}, getPlaceHighlightStyle(entry.id)]} key={entry.username}>
+                <ThemedText style={[styles.leaderboardPlace, getPlaceNumberStyle(entry.place)]} type="default">{entry.place}</ThemedText>
+                <ThemedText style={[styles.leaderboardName, {color: theme.textSecondary}]} type="default">{entry.username}</ThemedText>
+                <ThemedText style={[styles.leaderboardKills, {color: theme.textSecondary}]} type="default">{entry.kills}</ThemedText>
+                <ThemedView style={{backgroundColor: theme.backgroundElement, height: 1, width: "100%"}} />
               </ThemedView>
-            </Pressable>
-          </ExternalLink>
+            ))}
+          </ScrollView>
         </ThemedView>
+        <LinearGradient 
+          colors={[theme.backgroundElement, theme.accent]}
+          style={[styles.statContainer, {backgroundColor: theme.backgroundSelected, bottom: safeAreaInsets.bottom + Spacing.four}]}>
+            <Image
+              source={require("@/assets/images/noise.jpg")}
+              contentFit="cover"
+              pointerEvents="none"
+              style={styles.texture}
+            />
+            <Image
+              source={require("@/assets/images/noise.png")}
+              contentFit="cover"
+              pointerEvents="none"
+              style={styles.texture}
+            />
+            <ThemedView style={{flexDirection: "column", backgroundColor: "transparent", alignItems: "center"}}>
+              <ThemedText style={{color: theme.text}} type="default">#{leaderboard.find(i => i.id === session?.user.id)?.place}</ThemedText>
+              <ThemedText style={{color: theme.textSecondary}} type="small">Place</ThemedText>
+            </ThemedView>
 
-        <ThemedView style={styles.sectionsWrapper}>
-        </ThemedView>
+            <ThemedText style={{color: theme.text, fontSize: 20}} type="default">You</ThemedText>
+            
+            <ThemedView style={{flexDirection: "column", backgroundColor: "transparent", alignItems: "center"}}>
+              <ThemedText style={{color: theme.text}} type="default">{leaderboard.find(i => i.id === session?.user.id)?.kills}</ThemedText>
+              <ThemedText style={{color: theme.textSecondary}} type="small">Elims</ThemedText>
+            </ThemedView>
+        </LinearGradient>
       </ThemedView>
-    </ScrollView>
+
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+
   scrollView: {
     flex: 1,
-  },
+    width: '100%',
+    height: '100%'
+  }, 
   contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    flexGrow: 1
   },
   container: {
     maxWidth: MaxContentWidth,
-    flexGrow: 1,
+    flex: 1
   },
   titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
-  },
-  centerText: {
-    textAlign: 'center',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
     gap: Spacing.one,
     alignItems: 'center',
+    paddingTop: Spacing.six,
+    paddingBottom: Spacing.four
   },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
+  labelContainer: {
+    alignSelf: 'center',
+    gap: Spacing.two,
+    padding: Spacing.two,
+    width: '90%',
   },
-  collapsibleContent: {
-    alignItems: 'center',
+  labelPlace: {
+    width: '15%',
+    textAlign: 'left'
   },
-  imageTutorial: {
-    width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
+  labelName: {
+    width: '55%',
+    textAlign: 'left'
   },
-  imageReact: {
-    width: 100,
-    height: 100,
+  labelKills: {
+    width: '20%',
+    textAlign: 'end'
+  },
+  scrollContainer: {
+    flex: 1,
+    height: '70%',
+    width: '90%',
+    maxHeight: '60%',
     alignSelf: 'center',
   },
+  leaderboardEntry: {
+    width: '100%',
+    padding: Spacing.two
+  },
+  leaderboardPlace: {
+    width: '15%',
+    padding: Spacing.two
+  },
+  leaderboardName: {
+    width: '70%',
+    padding: Spacing.two
+  },
+  leaderboardKills: {
+    width: '15%',
+    padding: Spacing.two,
+    textAlign: "end"
+  },
+  statContainer: {
+    position: 'absolute',
+    width: "85%", 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    justifyContent: 'space-between', 
+    padding: Spacing.three,
+    borderRadius: Spacing.four,
+    alignItems: "center"
+  },
+  texture: {
+    ...StyleSheet.absoluteFill,
+    opacity: 0.3,
+    mixBlendMode: 'multiply',
+    borderRadius: Spacing.four
+  }
 });
