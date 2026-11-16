@@ -92,7 +92,7 @@ export default function LeaderboardScreen() {
         </ThemedView>
         <LinearGradient 
           colors={[theme.backgroundElement, theme.accent]}
-          style={[styles.statContainer, {backgroundColor: theme.backgroundSelected, bottom: insets.bottom}]}>
+          style={[styles.statContainer, {backgroundColor: theme.backgroundSelected, bottom: safeAreaInsets.bottom + Spacing.four}]}>
             <Image
               source={require("@/assets/images/noise.jpg")}
               contentFit="cover"
