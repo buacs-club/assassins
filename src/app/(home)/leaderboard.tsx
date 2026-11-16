@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useAuth } from '@/lib/AuthProvider';
 import { LeaderboardEntry, getLeaderboard } from '@/lib/supabase';
 
 export default function TabTwoScreen() {
@@ -15,6 +16,8 @@ export default function TabTwoScreen() {
     bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
   };
   const theme = useTheme();
+
+  const session = useAuth().session;
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
@@ -56,6 +59,10 @@ export default function TabTwoScreen() {
     }
   }
 
+  const getPlaceHighlightStyle = (id: string) => {
+    return id == session!.user.id ? {backgroundColor: theme.backgroundElement} : {backgroundColor: theme.background};
+  }
+
   return (
 
     <ThemedView
@@ -64,18 +71,29 @@ export default function TabTwoScreen() {
         <ThemedView style={[styles.titleContainer, {backgroundColor: theme.background}]}>
           <ThemedText type="subtitle">Leaderboard</ThemedText>
         </ThemedView>
+        <ThemedView style={[styles.labelContainer, {flexDirection: 'row', flexWrap: 'wrap'}]}>
+          <ThemedText style={[styles.labelPlace, {color: theme.text}]}>#</ThemedText>
+          <ThemedText style={[styles.labelName, {color: theme.text}]}>Player</ThemedText>
+          <ThemedText style={[styles.labelKills, {color: theme.text}]}>Elims</ThemedText>
+        </ThemedView>
         <ThemedView style={styles.scrollContainer}>
           <ScrollView style={[styles.scrollView, {backgroundColor: theme.background}]} contentContainerStyle={styles.contentContainer}>
             {leaderboard.map((entry)=>(
-              <ThemedView style={[styles.leaderboardEntry, {flexDirection: 'row', flexWrap: 'wrap'}]} key={entry.username}>
+              <ThemedView style={[styles.leaderboardEntry, {flexDirection: 'row', flexWrap: 'wrap'}, getPlaceHighlightStyle(entry.id)]} key={entry.username}>
                 <ThemedText style={[styles.leaderboardPlace, getPlaceNumberStyle(entry.place)]} type="default">{entry.place}</ThemedText>
                 <ThemedText style={[styles.leaderboardName, {color: theme.textSecondary}]} type="default">{entry.username}</ThemedText>
-                <ThemedText style={[styles.leaderboardKills, {color: theme.textSecondary, textAlign: "end"}]} type="default">{entry.kills}</ThemedText>
-    
+                <ThemedText style={[styles.leaderboardKills, {color: theme.textSecondary}]} type="default">{entry.kills}</ThemedText>
                 <ThemedView style={{backgroundColor: theme.backgroundElement, height: 1, width: "100%"}} />
               </ThemedView>
             ))}
           </ScrollView>
+        </ThemedView>
+        <ThemedView style={[styles.leaderboardEntry, {backgroundColor: theme.backgroundSelected, flexDirection: 'row', flexWrap: 'wrap'}]}>
+          <ThemedView style={{backgroundColor: theme.backgroundElement, height: 1, width: "100%"}} />
+          <ThemedText style={[styles.leaderboardPlace]} type="default">{leaderboard.find(i => i.id === session!.user.id)?.place}</ThemedText>
+          <ThemedText style={[styles.leaderboardName, {color: theme.textSecondary}]} type="default">You</ThemedText>
+          <ThemedText style={[styles.leaderboardKills, {color: theme.textSecondary}]} type="default">{leaderboard.find(i => i.id === session!.user.id)?.kills}</ThemedText>
+          <ThemedView style={{backgroundColor: theme.backgroundElement, height: 1, width: "100%"}} />
         </ThemedView>
       </ThemedView>
 
@@ -89,7 +107,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%'
-  },
+  }, 
   contentContainer: {
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -106,33 +124,45 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.four
   },
   labelContainer: {
+    alignSelf: 'center',
     gap: Spacing.two,
-
+    padding: Spacing.two,
+    width: '90%',
+  },
+  labelPlace: {
+    width: '15%',
+    textAlign: 'left'
+  },
+  labelName: {
+    width: '55%',
+    textAlign: 'left'
+  },
+  labelKills: {
+    width: '20%',
+    textAlign: 'end'
   },
   scrollContainer: {
     flex: 1,
     height: '70%',
     width: '90%',
-    maxHeight: '70%',
-    alignSelf: 'center'
+    maxHeight: '60%',
+    alignSelf: 'center',
   },
   leaderboardEntry: {
     width: '100%',
-    padding: Spacing.two,
+    padding: Spacing.two
   },
   leaderboardPlace: {
     width: '15%',
-    padding: Spacing.two,
-    outline: '5%'
+    padding: Spacing.two
   },
   leaderboardName: {
     width: '70%',
-    padding: Spacing.two,
-    outline: '5%'
+    padding: Spacing.two
   },
   leaderboardKills: {
     width: '15%',
     padding: Spacing.two,
-    outline: '5%'
+    textAlign: "end"
   }
 });
