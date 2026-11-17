@@ -23,10 +23,12 @@ export default function LeaderboardScreen() {
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
+  // Populate the leaderboard initially at app load
   useEffect(()=>{
     getLeaderboard().then((board) => { setLeaderboard(board) });
   }, []);
 
+  // Automatically update the leaderboard when a user's kill count changes
   useEffect(()=>{
     const subscription = supabase
       .channel("user-data-changes")
@@ -64,7 +66,8 @@ export default function LeaderboardScreen() {
       paddingBottom: Spacing.four,
     },
   });
-
+  
+  // Determine the color of a user's place number
   const getPlaceNumberStyle = (place: number) => {
     switch (place) {
       case 1:
@@ -85,7 +88,7 @@ export default function LeaderboardScreen() {
         }
     }
   }
-
+  
   const getPlaceHighlightStyle = (id: string) => {
     return id == session!.user.id ? {backgroundColor: theme.backgroundElement} : {backgroundColor: theme.background};
   }

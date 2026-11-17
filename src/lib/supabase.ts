@@ -7,6 +7,7 @@ import 'expo-sqlite/localStorage/install'
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
+// Define the format of a single entry on the leaderboard
 export interface LeaderboardEntry {
   username: string,
   kills: number,
@@ -14,6 +15,7 @@ export interface LeaderboardEntry {
   id: string
 }
 
+// Create a supabase client
 export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   auth: {
     storage: localStorage,
@@ -23,23 +25,27 @@ export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   },
 })
 
+// Log a user in using their email and password
 export async function login(email: string, password: string) {
     await supabase
-        .auth
-        .signInWithPassword({ email, password })
+      .auth
+      .signInWithPassword({ email, password })
 }
 
+// Log a user out
 export async function logout() {
     await supabase
-        .auth
-        .signOut()
+      .auth
+      .signOut()
 }
 
+// Calculate the places of every user on a leaderboard based on their kills
 export function placeLeaderboard(unplaced: LeaderboardEntry[]): LeaderboardEntry[] {
-  const placedLeaderboard = []
-
+  // Sort the currently unsorted array in order of most to least kills 
   const unplacedSorted = unplaced.sort((a,b)=>b.kills-a.kills)
 
+  // Calculate the places of each user sequentially
+  const placedLeaderboard = []
   let place = 0
   let lowestKillCount = Infinity
   for (const user of unplacedSorted!) {
@@ -53,8 +59,8 @@ export function placeLeaderboard(unplaced: LeaderboardEntry[]): LeaderboardEntry
   return placedLeaderboard
 }
 
+// Fetch the entire leaderboard from the server
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
-
   return new Promise(async (resolve) => {
     const data = (await supabase
         .from("user_data")
