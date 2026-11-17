@@ -35,6 +35,25 @@ export async function logout() {
         .signOut()
 }
 
+export function placeLeaderboard(unplaced: LeaderboardEntry[]): LeaderboardEntry[] {
+  const placedLeaderboard = []
+
+  const unplacedSorted = unplaced.sort((a,b)=>b.kills-a.kills)
+  console.log(unplacedSorted)
+
+  let place = 0
+  let lowestKillCount = Infinity
+  for (const user of unplacedSorted!) {
+    if (user.kills < lowestKillCount) {
+      place++;
+      lowestKillCount = user.kills;
+    }
+    placedLeaderboard.push({ username: user.username, kills: user.kills, place, id: user.id })
+  }
+
+  return placedLeaderboard
+}
+
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
 
   return new Promise(async (resolve) => {
@@ -44,18 +63,6 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
         .order("kills", { ascending: false }))
         .data
 
-    const placedLeaderboard = []
-
-    let place = 1
-    let lowestKillCount = Infinity
-    for (const user of data!) {
-      placedLeaderboard.push({ username: user.username, kills: user.kills, place, id: user.id })
-      if (user.kills < lowestKillCount) {
-        place++;
-        lowestKillCount = user.kills;
-      }
-    }
-
-    return resolve(placedLeaderboard)
+    return resolve(placeLeaderboard(data as LeaderboardEntry[]))
   })
 }

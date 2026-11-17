@@ -7,7 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Fonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/AuthProvider';
-import { LeaderboardEntry, getLeaderboard } from '@/lib/supabase';
+import { LeaderboardEntry, getLeaderboard, placeLeaderboard, supabase } from '@/lib/supabase';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -26,6 +26,32 @@ export default function LeaderboardScreen() {
   useEffect(()=>{
     getLeaderboard().then((board) => { setLeaderboard(board) });
   }, []);
+
+  useEffect(()=>{
+    const subscription = supabase
+      .channel("user-data-changes")
+      .on(
+        'postgres_changes',
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "user_data"
+        },
+        (payload)=>{
+          console.log(payload)
+          const updatedUserID = (payload.new as LeaderboardEntry).id;
+          const newLeaderboard = [...leaderboard] as LeaderboardEntry[];
+          const updatedIndex = newLeaderboard.findIndex(i=>i.id===updatedUserID);
+          newLeaderboard[updatedIndex] = payload.new as LeaderboardEntry;
+          setLeaderboard(placeLeaderboard(newLeaderboard))
+        }
+      )
+      .subscribe()
+
+    return ()=>{
+      supabase.removeChannel(subscription)
+    }
+  })
 
   const contentPlatformStyle = Platform.select({
     android: {
