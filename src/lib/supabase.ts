@@ -39,7 +39,6 @@ export function placeLeaderboard(unplaced: LeaderboardEntry[]): LeaderboardEntry
   const placedLeaderboard = []
 
   const unplacedSorted = unplaced.sort((a,b)=>b.kills-a.kills)
-  console.log(unplacedSorted)
 
   let place = 0
   let lowestKillCount = Infinity

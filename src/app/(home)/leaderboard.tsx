@@ -38,7 +38,6 @@ export default function LeaderboardScreen() {
           table: "user_data"
         },
         (payload)=>{
-          console.log(payload)
           const updatedUserID = (payload.new as LeaderboardEntry).id;
           const newLeaderboard = [...leaderboard] as LeaderboardEntry[];
           const updatedIndex = newLeaderboard.findIndex(i=>i.id===updatedUserID);
